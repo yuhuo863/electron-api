@@ -77,9 +77,9 @@ router.put(
 // 获取系统统计信息
 router.get("/stats", adminController.getSystemStats);
 
-// 获取所有安全日志
+// 获取操作日志
 router.get(
-  "/security-logs",
+  "/action-logs",
   [
     query("page")
       .optional()
@@ -96,29 +96,37 @@ router.get(
     query("action")
       .optional()
       .isIn([
-        "login",
-        "logout",
-        "login_failed",
         "password_accessed",
         "password_created",
         "password_updated",
-        "password_deleted",
         "account_created",
         "account_locked",
-        "account_unlocked",
-        "two_factor_enabled",
-        "profile_updated",
-        "two_factor_disabled",
         "export_data",
         "import_data",
         "user_role_updated",
         "user_enabled",
         "user_disabled",
-        "default_category_changed",
       ])
       .withMessage("Invalid action type"),
   ],
-  adminController.getAllSecurityLogs,
+  adminController.getUserActionLogs,
 );
 
+// 获取所有接口运行日志
+router.get(
+  "/api-logs",
+  [
+    query("currentPage")
+      .optional()
+      .isInt({ min: 1 })
+      .withMessage("Page must be a positive integer"),
+    query("pageSize")
+      .optional()
+      .isInt({ min: 1, max: 100 })
+      .withMessage("Limit must be between 1 and 100"),
+  ],
+  adminController.getApiRuntimeLogs,
+);
+
+// 获取所有接口运行日志
 module.exports = router;

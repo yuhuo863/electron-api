@@ -35,6 +35,11 @@ module.exports = (sequelize, DataTypes) => {
         // 例如: user.getLikedPasswords()/user.countLikedPasswords()
         as: "likedPasswords",
       });
+      // 扩展用户定期评分, 此时用户可以拥有多个评分记录
+      models.User.hasMany(models.Feedback, {
+        foreignKey: "userId",
+        as: "feedbacks",
+      });
     }
 
     async compareRefreshToken(refreshToken) {

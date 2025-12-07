@@ -1,4 +1,5 @@
 "use strict";
+const dayjs = require("dayjs");
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class SecurityLog extends Model {
@@ -38,25 +39,16 @@ module.exports = (sequelize, DataTypes) => {
       },
       action: {
         type: DataTypes.ENUM(
-          "login",
-          "login_failed",
           "password_accessed",
           "password_created",
           "password_updated",
-          "password_deleted",
           "account_created",
           "account_locked",
-          "account_unlocked",
-          "two_factor_enabled",
-          "profile_updated",
-          "two_factor_disabled",
           "export_data",
           "import_data",
           "user_role_updated",
           "user_enabled",
           "user_disabled",
-          "default_category_changed",
-          "token_refreshed",
         ),
         allowNull: false,
       },
@@ -74,6 +66,11 @@ module.exports = (sequelize, DataTypes) => {
       timestamp: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
+        get() {
+          return dayjs(this.getDataValue("timestamp")).format(
+            "YYYY-MM-DD HH:mm:ss",
+          );
+        },
       },
     },
     {

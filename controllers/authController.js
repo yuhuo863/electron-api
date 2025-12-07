@@ -192,6 +192,10 @@ const authController = {
           await user.update({
             lockedUntil: lockTime,
           });
+          // 记录安全日志
+          await logSecurityEvent(user.id, "user_locked", {
+            targetUserId: user.id,
+          });
 
           return sendErr(res, {
             isOperational: true,

@@ -2,6 +2,7 @@ const express = require("express");
 
 const authRoutes = require("./auth");
 const userRoutes = require("./users");
+const feedbackRoutes = require("./feedback");
 const passwordRoutes = require("./passwords");
 const likeRoutes = require("./likes");
 const uploadRoutes = require("./uploads");
@@ -16,6 +17,7 @@ const router = express.Router();
 
 router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
+router.use("/feedback", feedbackRoutes);
 router.use("/passwords", passwordRoutes);
 router.use("/likes", likeRoutes);
 router.use("/uploads", uploadRoutes);

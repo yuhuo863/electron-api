@@ -1,7 +1,6 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+"use strict";
+const dayjs = require("dayjs");
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Log extends Model {
     /**
@@ -13,20 +12,30 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  Log.init({
-    level: DataTypes.STRING,
-    message: DataTypes.STRING,
-    meta: {
-      type: DataTypes.STRING,
-      get() {
-        return JSON.parse(this.getDataValue("meta"));
-      }
+  Log.init(
+    {
+      level: DataTypes.STRING,
+      message: DataTypes.STRING,
+      meta: {
+        type: DataTypes.STRING,
+        get() {
+          return JSON.parse(this.getDataValue("meta"));
+        },
+      },
+      timestamp: {
+        type: DataTypes.DATE,
+        get() {
+          return dayjs(this.getDataValue("timestamp")).format(
+            "YYYY-MM-DD HH:mm:ss",
+          );
+        },
+      },
     },
-    timestamp: DataTypes.DATE,
-  }, {
-    sequelize,
-    modelName: 'Log',
-    timestamps: false, // 没有 createdAt 与 updatedAt
-  });
+    {
+      sequelize,
+      modelName: "Log",
+      timestamps: false, // 没有 createdAt 与 updatedAt
+    },
+  );
   return Log;
 };

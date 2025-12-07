@@ -1,10 +1,8 @@
-const { User, Password, Category, SecurityLog, Session } = require("../models");
+const { User, Password, Log, SecurityLog, Session } = require("../models");
 const { validationResult } = require("express-validator");
 const { sendOk, sendErr } = require("../utils/response");
 const { logSecurityEvent } = require("../utils/logger");
 const { Op } = require("sequelize");
-const { parseBoolean } = require("../utils/parsers");
-const redisClient = require("../services/redisService");
 
 const adminController = {
   // 获取用户列表
@@ -154,8 +152,6 @@ const adminController = {
       const { isActive } = req.body;
       const { id: adminId } = req.user; // 获取当前管理员的ID
 
-      // const parsedIsActive = parseBoolean(isActive);
-
       const user = await User.findByPk(id);
       if (!user) {
         return sendErr(res, {
@@ -192,9 +188,6 @@ const adminController = {
         isActive ? "user_enabled" : "user_disabled",
         {
           targetUserId: user.id,
-          newStatus: isActive ? "active" : "inactive",
-          ip: req.ip,
-          userAgent: req.get("User-Agent"),
         },
       );
 
@@ -231,17 +224,35 @@ const adminController = {
         },
       });
 
-      // 最近活跃用户
-      const recentlyActiveUsers = await User.findAll({
-        where: {
-          lastLogin: {
-            [Op.gte]: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 最近7天
+      // 最近7天活跃用户数
+      const dailyActiveUsers = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const startOfDay = new Date(date.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+        const count = await User.count({
+          where: {
+            lastLogin: {
+              [Op.between]: [startOfDay, endOfDay],
+            },
           },
+        });
+        dailyActiveUsers.push({
+          date: startOfDay.toLocaleDateString(),
+          count,
+        });
+      }
+
+      // 用户总数激活率
+      const totalUsers = await User.count();
+      const activeUsers = await User.count({
+        where: {
+          isActive: true,
         },
-        attributes: ["id", "username", "email", "lastLogin"],
-        order: [["lastLogin", "DESC"]],
-        limit: 5,
       });
+      const activeRate =
+        totalUsers > 0 ? (activeUsers / totalUsers).toFixed(2) : 0;
 
       // 组装统计信息
       const stats = {
@@ -276,11 +287,8 @@ const adminController = {
             value: weakPasswords,
           },
         ],
-        recentlyActiveUsers: recentlyActiveUsers.map((user) => ({
-          username: user.username,
-          email: user.email,
-          lastLogin: user.lastLogin,
-        })),
+        dailyActiveUsers,
+        activeRate: parseFloat(activeRate),
       };
 
       return sendOk(res, 200, "系统统计信息检索成功", { data: stats });
@@ -290,10 +298,10 @@ const adminController = {
     }
   },
 
-  // 获取所有安全日志
-  async getAllSecurityLogs(req, res) {
+  // 获取用户操作日志
+  async getUserActionLogs(req, res) {
     try {
-      const { page = 1, limit = 20, userId, action } = req.query;
+      const { currentPage = 1, pageSize = 10, userId, action } = req.query;
 
       const whereClause = {};
       if (userId) {
@@ -302,9 +310,12 @@ const adminController = {
       if (action) {
         whereClause.action = action;
       }
-      const offset = (page - 1) * limit;
+      const offset = (currentPage - 1) * pageSize;
       const { count, rows: logs } = await SecurityLog.findAndCountAll({
         where: whereClause,
+        attributes: {
+          exclude: ["id"],
+        },
         include: [
           {
             model: User,
@@ -314,20 +325,50 @@ const adminController = {
         ],
         order: [["timestamp", "DESC"]],
         offset,
-        limit: parseInt(limit),
+        pageSize: parseInt(pageSize),
       });
 
-      return sendOk(res, 200, "安全日志检索成功", {
+      return sendOk(res, 200, "用户操作日志检索成功", {
         logs,
         pagination: {
           total: count,
-          page: parseInt(page),
-          limit: parseInt(limit),
-          totalPages: Math.ceil(count / limit),
+          currentPage: parseInt(currentPage),
+          pageSize: parseInt(pageSize),
+          totalPages: Math.ceil(count / pageSize),
         },
       });
     } catch (error) {
-      console.error("安全日志检索失败:", error);
+      console.error("用户操作日志检索失败:", error);
+      return sendErr(res, error);
+    }
+  },
+
+  // 获取接口运行日志
+  async getApiRuntimeLogs(req, res) {
+    try {
+      const { currentPage = 1, pageSize = 10 } = req.query;
+
+      const offset = (currentPage - 1) * pageSize;
+      const { count, rows: logs } = await Log.findAndCountAll({
+        attributes: {
+          exclude: ["id"],
+        },
+        order: [["timestamp", "DESC"]],
+        offset,
+        limit: parseInt(pageSize),
+      });
+
+      return sendOk(res, 200, "接口运行日志检索成功", {
+        logs,
+        pagination: {
+          total: count,
+          currentPage: parseInt(currentPage),
+          PageSize: parseInt(pageSize),
+          totalPages: Math.ceil(count / pageSize),
+        },
+      });
+    } catch (error) {
+      console.error("接口运行日志检索失败:", error);
       return sendErr(res, error);
     }
   },
