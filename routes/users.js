@@ -95,9 +95,9 @@ router.put(
   userController.changePassword,
 );
 
-// 获取安全日志
+// 获取当前用户的密码操作日志
 router.get(
-  "/security-logs",
+  "/password-logs",
   [
     query("page")
       .optional()
@@ -109,7 +109,7 @@ router.get(
       .withMessage("Limit must be between 1 and 100"),
   ],
   authenticate,
-  userController.getSecurityLogs,
+  userController.getPasswordLogs,
 );
 
 module.exports = router;

@@ -42,6 +42,7 @@ module.exports = (sequelize, DataTypes) => {
           "password_accessed",
           "password_created",
           "password_updated",
+          "password_deleted",
           "account_created",
           "account_locked",
           "export_data",

@@ -4,13 +4,14 @@ const {
   Category,
   Like,
   User,
+  SecurityLog,
 } = require("../models");
 const { validationResult } = require("express-validator");
 const { sendOk, sendErr } = require("../utils/response");
 const { encrypt, decrypt } = require("../services/encryptionService");
 const { calculatePasswordStrength } = require("../services/passwordService");
 const { logSecurityEvent } = require("../utils/logger");
-const { Op } = require("sequelize");
+const { Op, fn, col } = require("sequelize");
 const { sequelize } = require("../models");
 
 const passwordController = {
@@ -166,6 +167,7 @@ const passwordController = {
           "isFavorite",
           "passwordStrength",
           "encryptedPassword",
+          "lastUsed",
         ],
         // 如果排除字段
         // attributes: {exclude: ["xx", "xxx"]}
@@ -270,15 +272,12 @@ const passwordController = {
         password: decryptedPassword,
         url: password.url,
         notes: password.notes,
-        categoryId: password.categoryId,
         category: password.category,
-        customFields: password.customFields,
         passwordStrength: password.passwordStrength,
         isFavorite: password.is_favorite,
         createdAt: password.createdAt,
         updatedAt: password.updatedAt,
         lastUsed: password.last_used,
-        expiresAt: password.expires_at,
       });
     } catch (error) {
       console.error("密码详情获取失败", error);
@@ -419,6 +418,17 @@ const passwordController = {
       // 软删除
       await Password.destroy({ where: { id } });
 
+      await logSecurityEvent(
+        userId,
+        "password_deleted",
+        {
+          targetUser: userId,
+          ip: req.ip,
+          userAgent: req.get("User-Agent"),
+        },
+        id,
+      );
+
       return sendOk(res, 200, "密码删除成功");
     } catch (error) {
       console.error("密码删除失败", error);
@@ -556,8 +566,6 @@ const passwordController = {
       const { id } = req.params;
       const { id: userId } = req.user;
 
-      console.log("id", id);
-
       // 查找并还原密码记录
       const passwordToRestore = await Password.findOne({
         where: {
@@ -577,6 +585,14 @@ const passwordController = {
 
       // 还原密码记录
       await Password.restore({ where: { id } });
+
+      await SecurityLog.destroy({
+        where: {
+          userId,
+          action: "password_deleted",
+          passwordId: id,
+        },
+      });
 
       return sendOk(res, 200, "密码恢复成功");
     } catch (error) {
@@ -806,6 +822,39 @@ const passwordController = {
         pageSize,
       },
     });
+  },
+
+  // 获取用户所有密码强度均值
+  async getPasswordStrengthAverage(req, res) {
+    try {
+      const { id: userId } = req.user;
+
+      const result = await Password.findAll({
+        // 使用 fn 和 col 计算平均值，并命名为 averageStrength
+        attributes: [[fn("AVG", col("password_strength")), "averageStrength"]],
+        where: {
+          userId,
+        },
+        raw: true,
+      });
+      console.log("Result:", result);
+
+      let averageStrength = result?.[0]?.averageStrength;
+
+      if (averageStrength === null) {
+        averageStrength = 0;
+      } else {
+        // 确保返回两位小数的数字字符串，更适合前端展示 (例如：85.33)
+        averageStrength = parseFloat(averageStrength);
+      }
+
+      return sendOk(res, 200, "密码强度均值获取成功", {
+        averageStrength: averageStrength,
+      });
+    } catch (error) {
+      console.error("密码强度均值获取失败", error);
+      return sendErr(res, error);
+    }
   },
 };
 

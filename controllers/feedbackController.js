@@ -4,7 +4,7 @@ const { sendErr, sendOk } = require("../utils/response");
 // 周期性评分的冷却时间（天）
 const FEEDBACK_COOLDOWN_DAYS = 180;
 // 新用户免打扰期（天）
-const NEW_USER_GRACE_DAYS = 3;
+const NEW_USER_GRACE_DAYS = 7;
 
 const feedbackController = {
   // 检查用户是否可以再次评分
@@ -83,7 +83,7 @@ const feedbackController = {
         console.log(`收到用户 ${userId} 的差评: ${content}`);
       }
 
-      return sendOk(res, 201, "提交反馈成功");
+      return sendOk(res, 201, "感谢您的反馈");
     } catch (error) {
       console.error("提交反馈失败:", error);
       sendErr(res, error);

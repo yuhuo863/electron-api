@@ -1,4 +1,10 @@
-const { User, SecurityLog, sequelize, Session } = require("../models");
+const {
+  User,
+  SecurityLog,
+  sequelize,
+  Session,
+  Password,
+} = require("../models");
 const { validationResult } = require("express-validator");
 const { sendOk, sendErr } = require("../utils/response");
 const bcrypt = require("bcrypt");
@@ -307,20 +313,34 @@ const userController = {
     }
   },
 
-  // 获取用户的安全日志
-  async getSecurityLogs(req, res) {
+  //  获取当前用户的密码操作日志
+  async getPasswordLogs(req, res) {
     try {
       const { id: userId } = req.user;
       const { page = 1, limit = 20 } = req.query;
 
-      // 计算偏移量
       const offset = (page - 1) * limit;
 
-      // 获取用户的安全日志记录
       const { count, rows: logs } = await SecurityLog.findAndCountAll({
         where: {
           userId,
+          passwordId: {
+            [Op.not]: null,
+          },
         },
+        include: [
+          {
+            model: User,
+            as: "user",
+            attributes: ["id", "email"],
+          },
+          {
+            model: Password,
+            as: "password",
+            attributes: ["title"],
+            paranoid: false, // 这里需要关闭软删除，查询被删除的密码
+          },
+        ],
         order: [["timestamp", "DESC"]],
         offset,
         limit: parseInt(limit),

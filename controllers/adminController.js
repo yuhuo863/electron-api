@@ -320,7 +320,12 @@ const adminController = {
           {
             model: User,
             as: "user",
-            attributes: ["id", "username", "email"],
+            attributes: ["username", "email"],
+          },
+          {
+            model: Password,
+            as: "password",
+            attributes: ["title"],
           },
         ],
         order: [["timestamp", "DESC"]],
