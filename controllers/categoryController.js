@@ -199,7 +199,7 @@ const categoryController = {
       if (existingCategory.isDefault) {
         return sendErr(res, {
           isOperational: true,
-          statusCode: 403,
+          statusCode: 400,
           message: "无法删除默认分类",
         });
       }
@@ -215,7 +215,7 @@ const categoryController = {
       if (passwordsCount > 0) {
         return sendErr(res, {
           isOperational: true,
-          statusCode: 403,
+          statusCode: 409,
           message: "无法删除，分类下还有密码",
         });
       }

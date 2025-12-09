@@ -330,7 +330,7 @@ const adminController = {
         ],
         order: [["timestamp", "DESC"]],
         offset,
-        pageSize: parseInt(pageSize),
+        limit: parseInt(pageSize),
       });
 
       return sendOk(res, 200, "用户操作日志检索成功", {

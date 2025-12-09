@@ -16,6 +16,7 @@ module.exports = (sequelize, DataTypes) => {
       models.Password.belongsTo(models.Category, {
         foreignKey: "categoryId",
         as: "category",
+        onDelete: "CASCADE", // 当分类被删除时，与之相关的密码也应被级联删除
       });
       models.Password.hasMany(models.PasswordHistory, {
         foreignKey: "passwordId",

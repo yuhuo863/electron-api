@@ -317,7 +317,7 @@ const userController = {
   async getPasswordLogs(req, res) {
     try {
       const { id: userId } = req.user;
-      const { page = 1, limit = 20 } = req.query;
+      const { page = 1, limit = 10 } = req.query;
 
       const offset = (page - 1) * limit;
 

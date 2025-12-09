@@ -231,7 +231,7 @@ const passwordController = {
           {
             model: Category,
             as: "category",
-            attributes: ["id", "name", "color", "icon"],
+            attributes: ["name", "color", "icon"],
           },
         ],
       });
@@ -266,7 +266,6 @@ const passwordController = {
       );
 
       return sendOk(res, 200, "密码详情获取成功", {
-        id: password.id,
         title: password.title,
         username: password.username,
         password: decryptedPassword,
@@ -274,10 +273,10 @@ const passwordController = {
         notes: password.notes,
         category: password.category,
         passwordStrength: password.passwordStrength,
-        isFavorite: password.is_favorite,
+        isFavorite: password.isFavorite,
         createdAt: password.createdAt,
         updatedAt: password.updatedAt,
-        lastUsed: password.last_used,
+        lastUsed: password.lastUsed,
       });
     } catch (error) {
       console.error("密码详情获取失败", error);
@@ -507,8 +506,7 @@ const passwordController = {
 
       // 解密历史记录中的密码
       const decryptedPasswords = history.map((h) => ({
-        id: h.id,
-        changedAt: h.changed_at,
+        changedAt: h.changedAt,
         decryptedPassword: decrypt(
           h.encryptedPassword,
           process.env.MASTER_PASSWORD,

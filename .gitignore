@@ -29,6 +29,7 @@ env/.env*
 *.db
 *.db-journal
 data/
+uploads/
 
 # Electron/平台相关
 *.asar

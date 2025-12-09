@@ -1,4 +1,5 @@
 "use strict";
+const dayjs = require("dayjs");
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class PasswordHistory extends Model {
@@ -36,6 +37,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
         field: "changed_at",
+        get() {
+          return dayjs(this.getDataValue("changedAt")).format(
+            "YYYY-MM-DD HH:mm:ss",
+          );
+        },
       },
     },
     {

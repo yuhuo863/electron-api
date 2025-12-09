@@ -8,7 +8,16 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      models.Like.belongsTo(models.Password, {
+        foreignKey: "passwordId",
+        as: "password",
+        onDelete: "CASCADE", // 当密码被删除时, 收藏记录也应该被级联删除
+      });
+      models.Like.belongsTo(models.User, {
+        foreignKey: "userId",
+        as: "user",
+        // onDelete: "CASCADE", // 正常用户被删除时, 收藏记录也应该被级联删除, 但当前系统设计为禁用用户
+      });
     }
   }
   Like.init(

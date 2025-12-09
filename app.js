@@ -39,8 +39,7 @@ app.use(compression());
 
 // 请求日志中间件
 app.use(logger("dev"));
-// 解析请求体中间件 限制请求体大小为10MB
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // 解析cookie中间件
 app.use(cookieParser());
