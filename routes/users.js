@@ -73,16 +73,12 @@ router.post(
 router.put(
   "/password",
   [
-    body("currentPassword")
-      .notEmpty()
-      .withMessage("Current password is required"),
+    body("currentPassword").notEmpty().withMessage("当前密码为必填项"),
     body("newPassword")
       .isLength({ min: 8 })
-      .withMessage("New password must be at least 8 characters long")
+      .withMessage("新密码必须至少8位")
       .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/) // 至少包含一个小写字母，一个大写字母和一个数字
-      .withMessage(
-        "New password must contain at least one lowercase letter, one uppercase letter, and one number",
-      )
+      .withMessage("新密码必须包含至少一个小写字母，一个大写字母和一个数字")
       .custom((value, { req }) => {
         // 验证新密码是否与当前密码相同
         if (value === req.body.currentPassword) {
@@ -110,6 +106,14 @@ router.get(
   ],
   authenticate,
   userController.getPasswordLogs,
+);
+
+// 验证锁屏状态下用户输入的主密码是否正确
+router.post(
+  "/screen-lock-password",
+  [body("password").notEmpty().withMessage("主密码为必填项")],
+  authenticate,
+  userController.validateScreenLockPassword,
 );
 
 module.exports = router;

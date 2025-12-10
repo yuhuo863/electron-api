@@ -206,24 +206,6 @@ const adminController = {
       const vipUsers = await User.count({ where: { role: "vip" } });
       const userUsers = await User.count({ where: { role: "user" } });
 
-      // 密码统计
-      const totalPasswords = await Password.count();
-      const strongPasswords = await Password.count({
-        where: {
-          passwordStrength: { [Op.gte]: 4 }, // 密码强度评分大于等于4为强密码
-        },
-      });
-      const mediumPasswords = await Password.count({
-        where: {
-          passwordStrength: { [Op.between]: [2, 4] }, // 密码强度评分在2到4之间为中等密码
-        },
-      });
-      const weakPasswords = await Password.count({
-        where: {
-          passwordStrength: { [Op.lte]: 2 }, // 密码强度评分小于等于2为弱密码
-        },
-      });
-
       // 最近7天活跃用户数
       const dailyActiveUsers = [];
       for (let i = 6; i >= 0; i--) {
@@ -244,16 +226,6 @@ const adminController = {
         });
       }
 
-      // 用户总数激活率
-      const totalUsers = await User.count();
-      const activeUsers = await User.count({
-        where: {
-          isActive: true,
-        },
-      });
-      const activeRate =
-        totalUsers > 0 ? (activeUsers / totalUsers).toFixed(2) : 0;
-
       // 组装统计信息
       const stats = {
         users: [
@@ -273,22 +245,7 @@ const adminController = {
             color: "#13c2c2",
           },
         ],
-        passwords: [
-          {
-            name: "strong",
-            value: strongPasswords,
-          },
-          {
-            name: "medium",
-            value: mediumPasswords,
-          },
-          {
-            name: "weak",
-            value: weakPasswords,
-          },
-        ],
         dailyActiveUsers,
-        activeRate: parseFloat(activeRate),
       };
 
       return sendOk(res, 200, "系统统计信息检索成功", { data: stats });

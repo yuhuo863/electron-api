@@ -152,7 +152,7 @@ const authController = {
       if (!user) {
         return sendErr(res, {
           isOperational: true,
-          statusCode: 400,
+          statusCode: 404,
           message: "账号不存在",
         });
       }
@@ -217,7 +217,6 @@ const authController = {
           {
             failedLoginAttempts: 0,
             lockedUntil: null, // 解锁账户
-            lastLogin: new Date(), // 记录最后登录时间
           },
           { transaction },
         );
@@ -230,7 +229,7 @@ const authController = {
       await user.update(
         {
           refreshTokenHash: newRefreshTokenHash,
-          lastLogin: new Date(), // 记录当前时间为最后登录时间
+          lastLogin: new Date(), // 记录当前时间为登录时间
         },
         { transaction },
       );

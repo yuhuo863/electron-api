@@ -360,6 +360,38 @@ const userController = {
       return sendErr(res, error);
     }
   },
+
+  // 验证锁屏状态下用户输入的主密码是否正确
+  async validateScreenLockPassword(req, res) {
+    try {
+      const { id: userId } = req.user;
+      const { password } = req.body;
+
+      const user = await User.scope("withHashes").findByPk(userId);
+      if (!user) {
+        return sendErr(res, {
+          isOperational: true,
+          statusCode: 404,
+          message: "账号不存在",
+        });
+      }
+
+      const isValid = bcrypt.compareSync(password, user.passwordHash);
+
+      if (!isValid) {
+        return sendErr(res, {
+          isOperational: true,
+          statusCode: 400,
+          message: "密码错误",
+        });
+      }
+
+      return sendOk(res, 200, "密码验证成功");
+    } catch (error) {
+      console.error("密码验证失败", error);
+      return sendErr(res, error);
+    }
+  },
 };
 
 module.exports = userController;
