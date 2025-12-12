@@ -146,7 +146,4 @@ router.post(
 // 彻底删除所有密码
 router.delete("/permanently-all", passwordController.deletePermanentlyAll);
 
-// 获取用户所有密码强度均值
-router.get("/strength-average", passwordController.getPasswordStrengthAverage);
-
 module.exports = router;

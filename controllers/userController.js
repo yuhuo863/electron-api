@@ -9,7 +9,6 @@ const { validationResult } = require("express-validator");
 const { sendOk, sendErr } = require("../utils/response");
 const bcrypt = require("bcrypt");
 const { Op } = require("sequelize");
-const { parseBoolean } = require("../utils/parsers");
 const crypto = require("crypto");
 const emailCaptchaTemplate = require("../templates/captcha");
 const { mailProducer } = require("../utils/rabbitMQ");

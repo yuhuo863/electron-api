@@ -821,39 +821,6 @@ const passwordController = {
       },
     });
   },
-
-  // 获取用户所有密码强度均值
-  async getPasswordStrengthAverage(req, res) {
-    try {
-      const { id: userId } = req.user;
-
-      const result = await Password.findAll({
-        // 使用 fn 和 col 计算平均值，并命名为 averageStrength
-        attributes: [[fn("AVG", col("password_strength")), "averageStrength"]],
-        where: {
-          userId,
-        },
-        raw: true,
-      });
-      console.log("Result:", result);
-
-      let averageStrength = result?.[0]?.averageStrength;
-
-      if (averageStrength === null) {
-        averageStrength = 0;
-      } else {
-        // 确保返回两位小数的数字字符串，更适合前端展示 (例如：85.33)
-        averageStrength = parseFloat(averageStrength);
-      }
-
-      return sendOk(res, 200, "密码强度均值获取成功", {
-        averageStrength: averageStrength,
-      });
-    } catch (error) {
-      console.error("密码强度均值获取失败", error);
-      return sendErr(res, error);
-    }
-  },
 };
 
 module.exports = passwordController;
