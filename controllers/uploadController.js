@@ -2,7 +2,6 @@ const { sendOk, sendErr } = require("../utils/response");
 const { singleFileUpload } = require("../utils/aliyun");
 
 const uploadController = {
-  // 阿里云 OSS 客户端上传
   upload(req, res) {
     try {
       singleFileUpload(req, res, function (error) {

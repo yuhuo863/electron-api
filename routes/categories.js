@@ -66,11 +66,4 @@ router.delete(
   categoryController.delete,
 );
 
-// 设置指定分类为用户的默认分类
-router.put(
-  "/:id/default",
-  [param("id").isUUID().withMessage("Invalid category ID")],
-  categoryController.setDefaulteCategory,
-);
-
 module.exports = router;
